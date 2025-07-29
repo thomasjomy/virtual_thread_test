@@ -1,4 +1,4 @@
-package my.training.async;
+package my.training.async.model;
 
 public record Quotation(String server, int amount) {
 }

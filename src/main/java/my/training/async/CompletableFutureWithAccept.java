@@ -4,14 +4,11 @@ import my.training.async.model.Quotation;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-public class AsyncUsingCompletionStage {
+public class CompletableFutureWithAccept {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         run();
@@ -49,36 +46,38 @@ public class AsyncUsingCompletionStage {
 
         };
 
-        var quotationTasks = List.of(fetchQuotationA,fetchQuotationB, fetchQuotationC);
+        var quotationTasks = List.of(fetchQuotationA, fetchQuotationB, fetchQuotationC);
 
         Instant begin = Instant.now();
-
-        List<CompletableFuture<Quotation>> results = new ArrayList<>();
-
+        Collection<Quotation> results = new ConcurrentLinkedDeque<>();
+        Collection<CompletableFuture<Void>> resultsCF = new ArrayList<>();
         for (Supplier<Quotation> quotationTask : quotationTasks) {
             CompletableFuture<Quotation> quotationCompletableFuture = CompletableFuture.supplyAsync(quotationTask);
-            results.add(quotationCompletableFuture);
+            quotationCompletableFuture.thenAccept(System.out::println);
+            CompletableFuture<Void> gatherResults = quotationCompletableFuture.thenAccept(results::add);
+            resultsCF.add(gatherResults);
         }
 
-        List<Quotation> quotations = new ArrayList<>();
-        for (CompletableFuture<Quotation> result : results) {
-            Quotation quotation = result.join();
-            quotations.add(quotation);
+        for (CompletableFuture<Void> voidCompletableFuture : resultsCF) {
+            voidCompletableFuture.join();
         }
 
-        Quotation bestQuotation = quotations.stream()
+        System.out.println("quotations : " + results);
+
+        Quotation bestQuotation = results.stream()
                 .min(Comparator.comparing(Quotation::amount))
                 .orElseThrow();
+
 
         Instant end = Instant.now();
 
         Duration duration = Duration.between(begin, end);
-
+        Thread.sleep(Duration.ofMillis(200));
         System.out.println("Best Quotation [SYNC]  = " +  bestQuotation + " (" + duration.toMillis() + "ms)");
 
     }
 
-    private static Quotation fetchQuotation(Callable<Quotation> task){
+    private static Quotation fetchQuotation(Callable<Quotation> task) {
         try {
             return task.call();
         } catch (Exception e) {

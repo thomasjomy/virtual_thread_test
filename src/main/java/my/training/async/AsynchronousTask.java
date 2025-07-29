@@ -1,5 +1,7 @@
 package my.training.async;
 
+import my.training.async.model.Quotation;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;

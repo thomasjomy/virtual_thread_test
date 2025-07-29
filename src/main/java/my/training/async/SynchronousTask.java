@@ -1,10 +1,11 @@
 package my.training.async;
 
+import my.training.async.model.Quotation;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.Callable;
 
