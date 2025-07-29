@@ -15,24 +15,27 @@ public class TravelService {
 
     public static void main(String[] args) {
         TravelService travelService = new TravelService();
-        travelService.getTravelDetails();
+        TravelDetails travelDetails = travelService.getTravelDetails().join();
+        System.out.println("Travel details : " + travelDetails);
     }
 
 
-    public void getTravelDetails() {
+    public CompletableFuture<TravelDetails> getTravelDetails() {
         List<CompletableFuture<Quotation>> quotationCompletableFutures = quotationService.getQuotations();
         List<CompletableFuture<Weather>> weatherCompletableFutures = weatherService.getWeatherForecast();
 
         CompletableFuture<Void> allOf = CompletableFuture.allOf(quotationCompletableFutures.toArray(CompletableFuture[]::new));
-        CompletableFuture<Object> future = CompletableFuture.anyOf(weatherCompletableFutures.toArray(CompletableFuture[]::new));
 
-        Quotation bestQuotation = allOf.thenApply(v ->
+        CompletableFuture<Weather> anyWeatherCF = CompletableFuture.anyOf(weatherCompletableFutures.toArray(CompletableFuture[]::new))
+                .thenApply(o -> (Weather) o);
+
+        CompletableFuture<Quotation> bestQuotationCF = allOf.thenApply(v ->
                 quotationCompletableFutures.stream()
                         .map(CompletableFuture::join)
                         .min(Comparator.comparing(Quotation::amount))
                         .orElseThrow()
-        ).join();
-        future.thenAccept(System.out::println).join();
-        System.out.println("bestQuotation = " + bestQuotation);
+        );
+
+        return bestQuotationCF.thenCombine(anyWeatherCF, TravelDetails::new);
     }
 }
