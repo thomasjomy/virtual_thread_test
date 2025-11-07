@@ -1,6 +1,7 @@
 package my.training;
 
 public class VirtualThread1 {
+
     public static void main(String[] args) throws InterruptedException {
 
         Runnable task = () -> {
@@ -22,4 +23,5 @@ public class VirtualThread1 {
         Thread secondVT = Thread.startVirtualThread(task);
         secondVT.join();
     }
+
 }

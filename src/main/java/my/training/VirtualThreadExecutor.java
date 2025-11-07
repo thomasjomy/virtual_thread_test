@@ -4,6 +4,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
 public class VirtualThreadExecutor {
+
     public static void main(String[] args) {
         var set = ConcurrentHashMap.<String>newKeySet();
 
@@ -19,4 +20,5 @@ public class VirtualThreadExecutor {
 
         System.out.println("# threads.used " + set.size());
     }
+
 }
